@@ -12,10 +12,11 @@ if ! git pull; then
   exit 1
 fi
 
+STACK_NAME="${STACK_NAME:-ifaran-gitops}"
 COMMIT=$(git rev-parse --short HEAD)
-log "Deploying stack from commit $COMMIT..."
+log "Deploying stack $STACK_NAME from commit $COMMIT..."
 
-if docker stack deploy -c stack.yml ifaran; then
+if docker stack deploy -c stack.yml "$STACK_NAME"; then
   log "Stack deploy succeeded (commit $COMMIT)"
 else
   log "ERROR: Stack deploy failed (commit $COMMIT)"
