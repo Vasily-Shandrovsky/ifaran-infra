@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  web:
+    image: localhost:5000/ifaran-app:bootstrap
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      update_config:
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        order: stop-first
+
+  build-agent:
+    image: ifaran-build-agent:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - app-repo:/app-repo
+      - ssh-key:/root/.ssh:ro
+    environment:
+      APP_REPO: ${APP_REPO}
+      INFRA_REPO_PUSH_URL: ${INFRA_REPO_PUSH_URL}
+      REGISTRY: ${REGISTRY:-localhost:5000}
+      POLL_INTERVAL: ${POLL_INTERVAL:-60}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  deploy-agent:
+    image: ifaran-deploy-agent:latest
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - infra-repo:/infra-repo
+    environment:
+      INFRA_REPO: ${INFRA_REPO}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  registry-data:
+  app-repo:
+  infra-repo:
+  ssh-key:
