@@ -4,6 +4,7 @@ APP_DIR="${APP_DIR:-/app-repo}"
 POLL_INTERVAL="${POLL_INTERVAL:-60}"
 REGISTRY="${REGISTRY:-127.0.0.1:5000}"
 LAST_BUILT_FILE="$APP_DIR/.last_built"
+export GIT_SSH_COMMAND="ssh -i /root/.ssh/ifaran_deploy_key -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/known_hosts"
 
 log() {
   echo "[$(date -Iseconds)] $*"
