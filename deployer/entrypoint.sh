@@ -18,4 +18,4 @@ if [ ! -d /infra-repo/.git ]; then
   git clone "$INFRA_REPO" /infra-repo
 fi
 
-exec webhook -hooks /deploy/hooks.json -verbose -port 9000 -urlprefix /
+exec /usr/local/bin/webhook -hooks /deploy/hooks.json -verbose -port 9000 -urlprefix /

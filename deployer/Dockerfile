@@ -1,6 +1,6 @@
 FROM alpine:3.19
 
-RUN apk add --no-cache git docker-cli curl bash
+RUN apk add --no-cache git docker-cli curl bash gcompat
 
 ARG WEBHOOK_VERSION=2.8.1
 RUN curl -fsSL "https://github.com/adnanh/webhook/releases/download/${WEBHOOK_VERSION}/webhook-linux-amd64.tar.gz" \
