@@ -2,7 +2,7 @@
 
 APP_DIR="${APP_DIR:-/app-repo}"
 POLL_INTERVAL="${POLL_INTERVAL:-60}"
-REGISTRY="${REGISTRY:-localhost:5000}"
+REGISTRY="${REGISTRY:-127.0.0.1:5000}"
 LAST_BUILT_FILE="$APP_DIR/.last_built"
 
 log() {
@@ -67,7 +67,7 @@ while true; do
       else
         cd "$INFRA_WORK"
 
-        sed -i "s|image: localhost:5000/ifaran-app:.*|image: localhost:5000/ifaran-app:$CURRENT_HASH|" stack.yml
+        sed -i "s|image: 127.0.0.1:5000/ifaran-app:.*|image: 127.0.0.1:5000/ifaran-app:$CURRENT_HASH|" stack.yml
 
         git add stack.yml
         git commit -m "deploy ifaran-app:$CURRENT_HASH (v$VERSION)"

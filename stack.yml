@@ -13,7 +13,7 @@ services:
           - node.role == manager
 
   web:
-    image: localhost:5000/ifaran-app:bootstrap
+    image: 127.0.0.1:5000/ifaran-app:bootstrap
     ports:
       - "8080:80"
     healthcheck:
@@ -38,7 +38,7 @@ services:
     environment:
       APP_REPO: ${APP_REPO}
       INFRA_REPO_PUSH_URL: ${INFRA_REPO_PUSH_URL}
-      REGISTRY: ${REGISTRY:-localhost:5000}
+      REGISTRY: ${REGISTRY:-127.0.0.1:5000}
       POLL_INTERVAL: ${POLL_INTERVAL:-60}
     deploy:
       placement:

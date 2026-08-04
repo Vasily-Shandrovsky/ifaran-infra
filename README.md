@@ -29,7 +29,7 @@ cp .env.example .env
 | `APP_REPO` | Read-only clone URL for ifaran-app (HTTPS or SSH) |
 | `INFRA_REPO` | Read-only clone URL for ifaran-infra (used by deploy-agent) |
 | `INFRA_REPO_PUSH_URL` | Write-enabled clone URL for ifaran-infra (used by build-agent) |
-| `REGISTRY` | Registry address (default: `localhost:5000`) |
+| `REGISTRY` | Registry address (default: `127.0.0.1:5000`) |
 | `POLL_INTERVAL` | Build-agent poll interval in seconds (default: `60`) |
 | `WEBHOOK_SECRET` | Shared secret for GitHub webhook HMAC validation |
 
@@ -78,8 +78,8 @@ git clone <APP_REPO_URL> /tmp/ifaran-app
 cd /tmp/ifaran-app
 VERSION=$(cat VERSION)
 HASH=$(git rev-parse --short HEAD)
-docker build --build-arg VERSION=$VERSION -t localhost:5000/ifaran-app:$HASH .
-docker push localhost:5000/ifaran-app:$HASH
+docker build --build-arg VERSION=$VERSION -t 127.0.0.1:5000/ifaran-app:$HASH .
+docker push 127.0.0.1:5000/ifaran-app:$HASH
 
 # 4. Update stack.yml with the real tag and push to infra repo
 #    (or wait for build-agent to detect the commit and do this automatically)
