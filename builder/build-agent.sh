@@ -71,12 +71,13 @@ while true; do
         sed -i "s|image: 127.0.0.1:5000/ifaran-app:.*|image: 127.0.0.1:5000/ifaran-app:$CURRENT_HASH|" stack.yml
 
         git add stack.yml
-        git commit -m "deploy ifaran-app:$CURRENT_HASH (v$VERSION)"
-        if git push; then
+        if ! git commit -m "deploy ifaran-app:$CURRENT_HASH (v$VERSION)"; then
+          log "ERROR: git commit failed, infra repo will not be updated"
+        elif ! git push; then
+          log "ERROR: Failed to push infra repo changes"
+        else
           echo "$CURRENT_HASH" > "$LAST_BUILT_FILE"
           log "Infra repo updated, .last_built set to $CURRENT_HASH"
-        else
-          log "ERROR: Failed to push infra repo changes"
         fi
 
         rm -rf "$INFRA_WORK"
