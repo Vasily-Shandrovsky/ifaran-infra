@@ -31,6 +31,7 @@ cp .env.example .env
 | `INFRA_REPO_PUSH_URL` | Write-enabled clone URL for ifaran-infra (used by build-agent) |
 | `REGISTRY` | Registry address (default: `127.0.0.1:5000`) |
 | `POLL_INTERVAL` | Build-agent poll interval in seconds (default: `60`) |
+| `KEEP_IMAGES` | How many `ifaran-app` image tags to keep in registry (default: `3`) |
 | `WEBHOOK_SECRET` | Shared secret for GitHub webhook HMAC validation |
 | `STACK_NAME` | Swarm stack name (default: `ifaran-gitops`) |
 | `WEB_PORT` | Host port for the demo app (default: `80`) |
@@ -152,3 +153,7 @@ docker service ps ifaran_web
 | `web` | Demo nginx app, port 80, with healthcheck and rollback config |
 | `build-agent` | Polls ifaran-app, builds/pushes images, commits to infra repo |
 | `deploy-agent` | Listens for webhooks on port 9000, deploys stack |
+
+## Operations and production migration
+
+See **[docs/PRODUCTION-GUIDE.md](docs/PRODUCTION-GUIDE.md)** — image retention, disk cleanup, checklist for attaching this template to a real project.

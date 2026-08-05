@@ -3,11 +3,88 @@
 APP_DIR="${APP_DIR:-/app-repo}"
 POLL_INTERVAL="${POLL_INTERVAL:-60}"
 REGISTRY="${REGISTRY:-127.0.0.1:5000}"
+KEEP_IMAGES="${KEEP_IMAGES:-3}"
 LAST_BUILT_FILE="$APP_DIR/.last_built"
+REGISTRY_API="http://${REGISTRY}/v2"
 export GIT_SSH_COMMAND="ssh -i /root/.ssh/ifaran_deploy_key -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/known_hosts"
 
 log() {
   echo "[$(date -Iseconds)] $*"
+}
+
+delete_registry_tag() {
+  local image=$1
+  local tag=$2
+  local digest
+
+  digest=$(curl -fsI \
+    -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+    "${REGISTRY_API}/${image}/manifests/${tag}" \
+    | grep -i Docker-Content-Digest | awk '{print $2}' | tr -d '\r')
+
+  if [ -z "$digest" ]; then
+    return 1
+  fi
+
+  curl -fsX DELETE "${REGISTRY_API}/${image}/manifests/${digest}" >/dev/null
+}
+
+run_registry_gc() {
+  local cid
+
+  cid=$(docker ps -q --filter "label=com.docker.swarm.service.name=ifaran-gitops_registry" | head -1)
+  if [ -z "$cid" ]; then
+    cid=$(docker ps -q --filter "ancestor=registry:2" | head -1)
+  fi
+  if [ -z "$cid" ]; then
+    log "Registry container not found, skipping garbage collection"
+    return 0
+  fi
+
+  if docker exec "$cid" registry garbage-collect /etc/docker/registry/config.yml >/dev/null 2>&1; then
+    log "Registry garbage collection completed"
+  else
+    log "WARNING: Registry garbage collection failed"
+  fi
+}
+
+prune_old_images() {
+  local keep="${KEEP_IMAGES:-3}"
+  local repo="${REGISTRY}/ifaran-app"
+  local deleted=0
+  local tag
+
+  if [ "$keep" -lt 1 ]; then
+    log "KEEP_IMAGES=$keep is invalid, skipping prune"
+    return 0
+  fi
+
+  log "Pruning old images (keeping ${keep} newest)..."
+
+  while IFS= read -r tag; do
+    [ -z "$tag" ] && continue
+    log "Removing ${repo}:${tag}"
+    if delete_registry_tag "ifaran-app" "$tag"; then
+      deleted=$((deleted + 1))
+    else
+      log "WARNING: Could not delete ${repo}:${tag} from registry"
+    fi
+    docker rmi "${repo}:${tag}" 2>/dev/null || true
+  done < <(
+    docker images "$repo" --format '{{.CreatedAt}} {{.Tag}}' \
+      | sort -r \
+      | awk '{print $2}' \
+      | grep -v '^<none>$' \
+      | tail -n +$((keep + 1))
+  )
+
+  if [ "$deleted" -gt 0 ]; then
+    run_registry_gc
+  fi
+
+  if docker builder prune -f >/dev/null 2>&1; then
+    log "Dangling build cache pruned"
+  fi
 }
 
 ensure_app_repo() {
@@ -82,6 +159,8 @@ while true; do
 
         rm -rf "$INFRA_WORK"
       fi
+
+      prune_old_images
     fi
   fi
 

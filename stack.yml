@@ -40,6 +40,7 @@ services:
       INFRA_REPO_PUSH_URL: ${INFRA_REPO_PUSH_URL}
       REGISTRY: ${REGISTRY:-127.0.0.1:5000}
       POLL_INTERVAL: ${POLL_INTERVAL:-60}
+      KEEP_IMAGES: ${KEEP_IMAGES:-3}
     deploy:
       placement:
         constraints:
