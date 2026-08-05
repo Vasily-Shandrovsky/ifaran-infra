@@ -8,7 +8,7 @@ Pipeline: push to `ifaran-app` → build-agent polls and builds image → push t
 
 - Docker Engine with Swarm initialized (`docker swarm init`)
 - Open ports:
-  - **8080** — demo web app (public)
+  - **80** — demo web app (public)
   - **9000** — webhook listener (public, for GitHub)
   - **5000** — registry (internal only; block in firewall/security group)
 - Two Git repositories:
@@ -33,7 +33,7 @@ cp .env.example .env
 | `POLL_INTERVAL` | Build-agent poll interval in seconds (default: `60`) |
 | `WEBHOOK_SECRET` | Shared secret for GitHub webhook HMAC validation |
 | `STACK_NAME` | Swarm stack name (default: `ifaran-gitops`) |
-| `WEB_PORT` | Host port for the demo app (default: `8080`; change if already taken) |
+| `WEB_PORT` | Host port for the demo app (default: `80`) |
 
 All of these are also injected into the `deploy-agent` container's environment (see `stack.yml`), because deploy-agent re-runs `docker stack deploy` on every webhook trigger and needs them for compose variable interpolation — `.env` itself is never committed or cloned into `/infra-repo`.
 
@@ -96,7 +96,7 @@ After bootstrap, build-agent handles subsequent app changes automatically.
 In the `ifaran-infra` repository settings on GitHub:
 
 1. Go to **Settings → Webhooks → Add webhook**
-2. **Payload URL**: `http://<VPS_IP>:9000/hooks/infra-deploy`
+2. **Payload URL**: `http://swarm.gorenkov.ru:9000/hooks/infra-deploy`
 3. **Content type**: `application/json`
 4. **Secret**: same value as `WEBHOOK_SECRET` in `.env`
 5. **Events**: select **Just the push event**
@@ -110,7 +110,7 @@ Webhook triggers on every push to any branch; deploy-agent always pulls latest a
 2. Within ~60 seconds, build-agent detects the new commit, builds and pushes the image, commits the new tag to `ifaran-infra`
 3. GitHub sends a webhook to deploy-agent
 4. Deploy-agent pulls infra repo and runs `docker stack deploy`
-5. Open `http://<VPS_IP>:8080` — the page shows the new version in large text
+5. Open `http://swarm.gorenkov.ru` — the page shows the new version in large text
 
 ## Rollback
 
@@ -149,6 +149,6 @@ docker service ps ifaran_web
 | Service | Role |
 |---------|------|
 | `registry` | Local Docker registry (`registry:2`) on port 5000 |
-| `web` | Demo nginx app, port 8080, with healthcheck and rollback config |
+| `web` | Demo nginx app, port 80, with healthcheck and rollback config |
 | `build-agent` | Polls ifaran-app, builds/pushes images, commits to infra repo |
 | `deploy-agent` | Listens for webhooks on port 9000, deploys stack |
