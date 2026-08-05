@@ -13,7 +13,7 @@ services:
           - node.role == manager
 
   web:
-    image: 127.0.0.1:5000/ifaran-app:bootstrap
+    image: 127.0.0.1:5000/ifaran-app:5c3bfbc
     ports:
       - "8080:80"
     healthcheck:
