@@ -32,6 +32,10 @@ cp .env.example .env
 | `REGISTRY` | Registry address (default: `127.0.0.1:5000`) |
 | `POLL_INTERVAL` | Build-agent poll interval in seconds (default: `60`) |
 | `WEBHOOK_SECRET` | Shared secret for GitHub webhook HMAC validation |
+| `STACK_NAME` | Swarm stack name (default: `ifaran-gitops`) |
+| `WEB_PORT` | Host port for the demo app (default: `8080`; change if already taken) |
+
+All of these are also injected into the `deploy-agent` container's environment (see `stack.yml`), because deploy-agent re-runs `docker stack deploy` on every webhook trigger and needs them for compose variable interpolation — `.env` itself is never committed or cloned into `/infra-repo`.
 
 ## SSH key setup
 
